@@ -27,7 +27,7 @@ public class ProductService {
 
     // DÀNH CHO MANAGER: CHỈ 5 GIÁ CAO NHẤT
     public List<Product> findTop5ByPriceDesc() {
-        return productRepository.findTop5ByOrderByPriceDesc(); // KHÔNG CẦN .getContent()
+        return productRepository.findTop5ByOrderByPriceDesc();
     }
 
     public Optional<Product> findById(int id) {
