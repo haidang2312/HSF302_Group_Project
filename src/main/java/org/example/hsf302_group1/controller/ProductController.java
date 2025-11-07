@@ -69,18 +69,39 @@ public class ProductController {
     public String updateProduct(@Valid @ModelAttribute Product product,
                                 BindingResult result,
                                 HttpSession session,
-                                Model model) {
+                                Model model,
+                                @RequestParam(defaultValue = "0") int page) {
         if (result.hasErrors()) {
-            reloadPage(session, model, 0);
+            reloadPage(session, model, page);
             return "products";
         }
+
         String username = (String) session.getAttribute("username");
         productService.updateIfOwner(product, username)
                 .ifPresentOrElse(
                         p -> {},
                         () -> model.addAttribute("error", "You can only update your own products!")
                 );
-        return "redirect:/products";
+        return "redirect:/products?page=" + page;
+    }
+
+
+    @GetMapping("/products/edit/{id}")
+    public String editProduct(@PathVariable int id,
+                              @RequestParam(defaultValue = "0") int page,
+                              Model model,
+                              HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        productService.findById(id).ifPresent(p -> {
+            if (p.getCreatedBy().equals(username)) {
+                model.addAttribute("product", p);
+            } else {
+                model.addAttribute("error", "You can only edit your own products!");
+            }
+        });
+        reloadPage(session, model, page);
+        model.addAttribute("currentPage", page);
+        return "products";
     }
 
     @GetMapping("/products/delete/{id}")
@@ -91,20 +112,6 @@ public class ProductController {
             model.addAttribute("error", "You can only delete your own products!");
         }
         return "redirect:/products";
-    }
-
-    @GetMapping("/products/edit/{id}")
-    public String editProduct(@PathVariable int id, Model model, HttpSession session) {
-        String username = (String) session.getAttribute("username");
-        productService.findById(id).ifPresent(p -> {
-            if (p.getCreatedBy().equals(username)) {
-                model.addAttribute("product", p);
-            } else {
-                model.addAttribute("error", "You can only edit your own products!");
-            }
-        });
-        reloadPage(session, model, 0);
-        return "products";
     }
 
     private void reloadPage(HttpSession session, Model model, int page) {
