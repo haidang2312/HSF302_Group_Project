@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class SupplierController {
@@ -16,7 +17,7 @@ public class SupplierController {
     private SupplierService supplierService;
 
     @GetMapping("/suppliers")
-    public String suppliers(Model model) {
+    public String suppliers(Model model ) {
         model.addAttribute("suppliers", supplierService.findAll());
         model.addAttribute("supplier", new Supplier());
         return "suppliers";
@@ -47,10 +48,16 @@ public class SupplierController {
     }
 
     @GetMapping("/suppliers/delete/{id}")
-    public String deleteSupplier(@PathVariable Integer id) {
-        supplierService.deleteById(id);
+    public String deleteSupplier(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            supplierService.deleteById(id);
+            redirectAttributes.addFlashAttribute("success", "✅ Supplier deleted successfully!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "❌ Cannot delete supplier: This supplier has reference products.");
+        }
         return "redirect:/suppliers";
     }
+
 
     @GetMapping("/suppliers/edit/{id}")
     public String editSupplier(@PathVariable Integer id, Model model) {
